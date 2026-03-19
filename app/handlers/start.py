@@ -176,7 +176,7 @@ async def _claim_phantom_user(
         )
         existing = await get_user_by_telegram_id(db, telegram_id)
         return False, existing
-    await db.refresh(phantom, ['subscription'])
+    await db.refresh(phantom, ['subscriptions'])
     logger.info(
         'Claimed phantom user from guest purchase',
         phantom_user_id=phantom.id,
@@ -711,7 +711,7 @@ async def cmd_start(message: types.Message, state: FSMContext, db: AsyncSession,
             if phantom and phantom.id != user.id:
                 try:
                     await _merge_phantom_into_active_user(db, phantom, user)
-                    await db.refresh(user, ['subscription'])
+                    await db.refresh(user, ['subscriptions'])
                 except Exception:
                     await db.rollback()
                     logger.exception(
@@ -1518,7 +1518,7 @@ async def complete_registration_from_callback(callback: types.CallbackQuery, sta
         existing_user.last_activity = datetime.now(UTC)
 
         await db.commit()
-        await db.refresh(existing_user, ['subscription'])
+        await db.refresh(existing_user, ['subscriptions'])
 
         user = existing_user
         logger.info('✅ Пользователь восстановлен', from_user_id=callback.from_user.id)
@@ -1543,7 +1543,7 @@ async def complete_registration_from_callback(callback: types.CallbackQuery, sta
             )
             if not claimed and user:
                 # IntegrityError fallback — use existing user
-                await db.refresh(user, ['subscription'])
+                await db.refresh(user, ['subscriptions'])
             elif not claimed:
                 logger.critical(
                     'Phantom claim failed with no fallback user, proceeding to normal registration',
@@ -1567,7 +1567,7 @@ async def complete_registration_from_callback(callback: types.CallbackQuery, sta
                 referred_by_id=referrer_id,
                 referral_code=referral_code,
             )
-            await db.refresh(user, ['subscription'])
+            await db.refresh(user, ['subscriptions'])
     else:
         logger.info('🔄 Обновляем существующего пользователя', from_user_id=callback.from_user.id)
         existing_user.status = UserStatus.ACTIVE.value
@@ -1579,7 +1579,7 @@ async def complete_registration_from_callback(callback: types.CallbackQuery, sta
         existing_user.last_activity = datetime.now(UTC)
 
         await db.commit()
-        await db.refresh(existing_user, ['subscription'])
+        await db.refresh(existing_user, ['subscriptions'])
         user = existing_user
 
     if referrer_id and referrer_id != user.id:
@@ -1601,7 +1601,7 @@ async def complete_registration_from_callback(callback: types.CallbackQuery, sta
         )
 
     try:
-        await db.refresh(user, ['subscription'])
+        await db.refresh(user, ['subscriptions'])
     except Exception as refresh_subscription_error:
         logger.error(
             'Ошибка обновления подписки пользователя после бонуса кампании',
@@ -1824,7 +1824,7 @@ async def complete_registration(message: types.Message, state: FSMContext, db: A
         existing_user.last_activity = datetime.now(UTC)
 
         await db.commit()
-        await db.refresh(existing_user, ['subscription'])
+        await db.refresh(existing_user, ['subscriptions'])
 
         user = existing_user
         logger.info('✅ Пользователь восстановлен', from_user_id=message.from_user.id)
@@ -1846,7 +1846,7 @@ async def complete_registration(message: types.Message, state: FSMContext, db: A
                 referrer_id=referrer_id,
             )
             if not claimed and user:
-                await db.refresh(user, ['subscription'])
+                await db.refresh(user, ['subscriptions'])
             elif not claimed:
                 logger.critical(
                     'Phantom claim failed with no fallback user, proceeding to normal registration',
@@ -1870,7 +1870,7 @@ async def complete_registration(message: types.Message, state: FSMContext, db: A
                 referred_by_id=referrer_id,
                 referral_code=referral_code,
             )
-            await db.refresh(user, ['subscription'])
+            await db.refresh(user, ['subscriptions'])
     else:
         logger.info('🔄 Обновляем существующего пользователя', from_user_id=message.from_user.id)
         existing_user.status = UserStatus.ACTIVE.value
@@ -1882,7 +1882,7 @@ async def complete_registration(message: types.Message, state: FSMContext, db: A
         existing_user.last_activity = datetime.now(UTC)
 
         await db.commit()
-        await db.refresh(existing_user, ['subscription'])
+        await db.refresh(existing_user, ['subscriptions'])
         user = existing_user
 
     if referrer_id and referrer_id != user.id:
@@ -1934,7 +1934,7 @@ async def complete_registration(message: types.Message, state: FSMContext, db: A
         )
 
     try:
-        await db.refresh(user, ['subscription'])
+        await db.refresh(user, ['subscriptions'])
     except Exception as refresh_subscription_error:
         logger.error(
             'Ошибка обновления подписки пользователя после бонуса кампании',
@@ -2462,7 +2462,7 @@ async def required_sub_channel_check(
                             referrer_id=referrer_id,
                         )
                         if not claimed and user:
-                            await db.refresh(user, ['subscription'])
+                            await db.refresh(user, ['subscriptions'])
                         elif not claimed:
                             logger.critical(
                                 'Phantom claim failed with no fallback user, proceeding to normal registration',
@@ -2484,7 +2484,7 @@ async def required_sub_channel_check(
                             referral_code=referral_code,
                             referred_by_id=referrer_id,
                         )
-                        await db.refresh(user, ['subscription'])
+                        await db.refresh(user, ['subscriptions'])
 
                     # ИСПРАВЛЕНИЕ БАГА: Очищаем pending_start_payload из state после создания пользователя
                     state_data.pop('pending_start_payload', None)
@@ -2510,7 +2510,7 @@ async def required_sub_channel_check(
                             refresh_error=refresh_error,
                         )
                     try:
-                        await db.refresh(user, ['subscription'])
+                        await db.refresh(user, ['subscriptions'])
                     except Exception as refresh_sub_error:
                         logger.error(
                             'Ошибка обновления подписки после бонуса кампании',
